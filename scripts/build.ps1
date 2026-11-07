@@ -26,7 +26,7 @@ Write-Host '== 3/4 编译客户端 =='
 $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 if (-not (Test-Path $csc)) { throw "找不到 csc.exe：$csc" }
 $src = Join-Path $root 'src\CastConsole.cs'
-$outExe = Join-Path $stage '星枢投屏.exe'
+$outExe = Join-Path $stage 'XingshuCast.exe'
 & $csc /nologo /target:winexe /platform:anycpu /optimize+ "/out:$outExe" `
     /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Core.dll $src
 if ($LASTEXITCODE -ne 0) { throw "编译失败，退出码 $LASTEXITCODE" }
