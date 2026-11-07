@@ -12,7 +12,7 @@ Unicode true
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\XingshuCast"
 
 Name "${APPNAME} ${VERSION}"
-OutFile "..\release\星枢投屏-安装版-${VERSION}.exe"
+OutFile "..\release\xingshu-cast-setup-${VERSION}.exe"
 InstallDir "$LOCALAPPDATA\XingshuCast\app"
 InstallDirRegKey HKCU "${UNINSTKEY}" "InstallLocation"
 RequestExecutionLevel user
