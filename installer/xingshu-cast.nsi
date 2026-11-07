@@ -53,9 +53,25 @@ Section "Install"
   nsExec::ExecToLog '"$PLUGINSDIR\payload\install.cmd" "$INSTDIR"'
   Pop $0
   ${If} $0 != "0"
-    IfSilent +3 0
-    MessageBox MB_ICONSTOP "安装失败（PowerShell 返回 $0）$\r$\n日志：%TEMP%\xingshu-cast-install.log"
     SetErrorLevel 2
+    StrCpy $2 ""
+    ClearErrors
+    FileOpen $3 "$TEMP\xingshu-cast-install.log" r
+    ${IfNot} ${Errors}
+      ${Do}
+        FileRead $3 $4
+        ${If} ${Errors}
+          ${ExitDo}
+        ${EndIf}
+        StrCpy $2 "$2$4"
+      ${Loop}
+      FileClose $3
+    ${EndIf}
+    ${If} $2 == ""
+      StrCpy $2 "（没拿到日志，请把 %TEMP%\xingshu-cast-install.log 和 xingshu-cast-cmd.log 发给作者）"
+    ${EndIf}
+    IfSilent +2 0
+    MessageBox MB_ICONSTOP "安装失败（返回码 $0）$\r$\n$2"
     Abort
   ${EndIf}
 
