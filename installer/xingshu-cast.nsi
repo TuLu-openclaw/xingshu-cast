@@ -34,7 +34,9 @@ SetCompressorDictSize 64
 
 Function .onInit
   ${IfNot} ${RunningX64}
-    MessageBox MB_ICONSTOP "这台电脑是 32 位 Windows。$\r$\n投屏内核 scrcpy 只有 64 位版本，装上也投不了屏，安装已取消。"
+    IfSilent +3 0
+    MessageBox MB_ICONSTOP "安装失败（PowerShell 返回 $0）$\r$\n日志：%TEMP%\xingshu-cast-install.log"
+    SetErrorLevel 2
     Abort
   ${EndIf}
 FunctionEnd
@@ -44,13 +46,16 @@ Section "Install"
   SetOutPath "$PLUGINSDIR\payload"
   File /r "..\build\stage\*.*"
   File "install.ps1"
+  File "install.cmd"
   File "uninstall.ps1"
 
   DetailPrint "正在安装到 $INSTDIR …"
-  nsExec::ExecToLog 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PLUGINSDIR\payload\install.ps1" -Payload "$PLUGINSDIR\payload" -Target "$INSTDIR"'
+  nsExec::ExecToLog '"$PLUGINSDIR\payload\install.cmd" "$INSTDIR"'
   Pop $0
   ${If} $0 != "0"
-    MessageBox MB_ICONSTOP "安装失败（PowerShell 返回 $0）$\r$\n请把这条信息发给作者。"
+    IfSilent +3 0
+    MessageBox MB_ICONSTOP "安装失败（PowerShell 返回 $0）$\r$\n日志：%TEMP%\xingshu-cast-install.log"
+    SetErrorLevel 2
     Abort
   ${EndIf}
 
