@@ -8,7 +8,7 @@ Unicode true
 !define APPNAME "星枢投屏"
 !define COMPANY "星枢[未来科技]"
 !define VERSION "1.1.0"
-!define APPEXE "星枢投屏.exe"
+!define APPEXE "XingshuCast.exe"
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\XingshuCast"
 
 Name "${APPNAME} ${VERSION}"
