@@ -1,0 +1,62 @@
+name: build-installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 NSIS
+        shell: pwsh
+        run: |
+          choco install nsis -y --no-progress
+          $mk = "C:\Program Files (x86)\NSIS\makensis.exe"
+          if (-not (Test-Path $mk)) { throw "NSIS 没装上：$mk" }
+          & $mk -VERSION
+
+      - name: 构建 stage（下载 scrcpy/platform-tools + 编译客户端）
+        shell: pwsh
+        run: ./scripts/build.ps1
+
+      - name: 打包 NSIS 安装包
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path release -Force | Out-Null
+          $mk = "C:\Program Files (x86)\NSIS\makensis.exe"
+          Push-Location installer
+          & $mk /INPUTCHARSET UTF8 /NOCD xingshu-cast.nsi
+          $rc = $LASTEXITCODE
+          Pop-Location
+          if ($rc -ne 0) { throw "makensis 失败，退出码 $rc" }
+          Get-ChildItem release
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: xingshu-cast-setup
+          path: release/*.exe
+
+      - name: 发布 Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "v1.1.0"
+          $exe = Get-ChildItem release/*.exe | Select-Object -First 1
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --title "星枢投屏 $tag" --notes "NSIS 安装包（CI 构建）" $exe.FullName
+          } else {
+            gh release upload $tag $exe.FullName --clobber
+          }
+          $h = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          Write-Host ("SHA256=" + $h)
+          Write-Host ("SIZE=" + $exe.Length)
